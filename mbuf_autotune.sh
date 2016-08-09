@@ -47,13 +47,6 @@ NMBJUMBOP=`expr $MAXMBUFMEM / $MJUMPAGESIZE / 4`
 NMBJUMBO9=`expr $MAXMBUFMEM / $MJUM9BYTES / 6`
 NMBJUMBO16=`expr $MAXMBUFMEM / $MJUM16BYTES / 6`
 
-echo "Suggested settings:"
-echo "kern.ipc.maxmbufmem=$MAXMBUFMEM"
-echo "kern.ipc.nmbclusters=$NMBCLUSTERS"
-echo "kern.ipc.nmbjumbop=$NMBJUMBOP"
-echo "kern.ipc.nmbjumbo9=$NMBJUMBO9"
-echo "kern.ipc.nmbjumbo16=$NMBJUMBO16"
-
 NMBUFS=`sysctl -n kern.ipc.nmbufs`
 NMMAX1=`expr $NMBCLUSTERS + $NMBJUMBOP + $NMBJUMBO9 + $NMBJUMBO16`
 NMMAX2=`expr $MAXMBUFMEM / $MSIZE / 5`
@@ -62,4 +55,39 @@ if [ $NMMAX1 -gt $NMMAX2 ]; then
 else
 	NMBUFX=$NMMAX2
 fi
-echo "kern.ipc.nmbufs=$NMBUFS"
+
+show()
+{
+	echo "# `basename $0 ` suggested settings:"
+	echo "kern.ipc.maxmbufmem=$MAXMBUFMEM"
+	echo "kern.ipc.nmbclusters=$NMBCLUSTERS"
+	echo "kern.ipc.nmbjumbop=$NMBJUMBOP"
+	echo "kern.ipc.nmbjumbo9=$NMBJUMBO9"
+	echo "kern.ipc.nmbjumbo16=$NMBJUMBO16"
+	echo "kern.ipc.nmbufs=$NMBUFS"
+}
+
+compare()
+{
+	echo "kern.ipc.maxmbufmem:  `sysctl -n kern.ipc.maxmbufmem` (current)"
+	echo "                 -->  $MAXMBUFMEM (suggested)"
+	echo "kern.ipc.nmbclusters: `sysctl -n kern.ipc.nmbclusters`"
+	echo "                  --> $NMBCLUSTERS"
+	echo "kern.ipc.nmbjumbop:   `sysctl -n kern.ipc.nmbjumbop`"
+	echo "                -->   $NMBJUMBOP"
+	echo "kern.ipc.nmbjumbo9:   `sysctl -n kern.ipc.nmbjumbo9`"
+	echo "                -->   $NMBJUMBO9"
+	echo "kern.ipc.nmbjumbo16:  `sysctl -n kern.ipc.nmbjumbo16`"
+	echo "                 -->  $NMBJUMBO16"
+	echo "kern.ipc.nmbufs:      `sysctl -n kern.ipc.nmbufs`"
+	echo "             -->      $NMBUFS"
+}
+
+if [ $# -gt 0 ]; then
+	if [ $1 == '-c' ]; then
+		compare
+		exit 0
+	fi
+fi
+
+show
