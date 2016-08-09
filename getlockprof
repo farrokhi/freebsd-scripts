@@ -1,0 +1,40 @@
+#!/bin/sh
+
+#
+# You need to make sure kernel profiling in enabled by adding 
+# following line to kernel configuartion and rebuilding the kernel
+# and modules:
+#
+# options		LOCK_PROFILING
+#
+
+OUTFILE=`mktemp -t kernlock`
+
+if [ $# -lt 1 ]; then
+	echo "Syntax: $0 [ wait_seconds ]"
+	exit 1
+fi
+
+WAITTIME=${1}
+
+get_prof()
+{
+	sysctl -q debug.lock.prof.reset=1
+	sysctl -q debug.lock.prof.enable=1
+	echo "Profiling lock information for ${WAITTIME} seconds..."
+	sleep ${WAITTIME}
+	sysctl -q debug.lock.prof.enable=0
+	sysctl debug.lock.prof.stats > ${OUTFILE}
+}
+
+show_prof()
+{
+	{
+		head -2 ${OUTFILE} 
+		cat ${OUTFILE} | sort -rn -k4 
+	} | ${PAGER}
+}
+
+get_prof
+show_prof
+echo "Raw output save to ${OUTFILE}"

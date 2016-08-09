@@ -1,0 +1,33 @@
+#!/bin/sh
+
+COMPILERS="clang gcc gcc45 gcc46 gcc47 gcc48 gcc49 gcc5 gcc6"
+
+check_compilers()
+{
+ echo "Looking for available C compilers..."
+ for C in ${COMPILERS}
+ do
+   P=`which ${C} 2>&1`
+   RES=$?
+   if [ $RES -eq 0 ]; then
+     echo " - Found ${C} at ${P}"
+     check_flags ${P}
+     echo
+   fi
+ done
+}
+
+check_flags()
+{
+ C=$1; shift;
+ printf "   Compiler flags:\t"
+ if `echo ${C} | grep -q clang$`
+ then
+        ${C} -march=native -E -v - < /dev/null 2>&1 | grep cc1 | grep -o -E '\-target-cpu ([a-zA-Z0-9=\-]+)'
+ else
+        ${C} -march=native -E -v - < /dev/null 2>&1 | grep cc1 | grep -o -E '\-march[=]*[a-zA-Z0-9]+'
+ fi
+}
+
+
+check_compilers
